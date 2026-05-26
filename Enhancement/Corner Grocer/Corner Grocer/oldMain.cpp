@@ -10,13 +10,14 @@ using namespace std;
 class Counter {
 public:
 	Counter(string file);
+	void pause(int duration);
 	int countItem(string item);
 	void getAllItemCount();
+	void closeFile();
 	void printItemFreq();
 	void printItemFreqHist();
 	void saveData();
 	void countSpecificItem();
-	void mainMenu();
 
 private:
 	ifstream inFS;
@@ -27,9 +28,6 @@ private:
 	map<string, int> itemsCount;
 	vector<string> key;
 	char quit = 'y';
-	string currFile;
-	string newFile;
-	char option;
 
 };
 
@@ -38,10 +36,6 @@ private:
 		if (!inFS.is_open()) {//checks if file was open
 			cout << "Can't open file" << endl;
 		}
-		else{
-			currFile = file;
-		}
-	
 }
 int Counter::countItem(string item) {
 	while (!inFS.eof()) {
@@ -54,6 +48,11 @@ int Counter::countItem(string item) {
 		}
 	return itemFreq;
  }
+void Counter::pause(int duration) {//duration to adust pause input duration
+	cout << "Press enter to continue..." << endl; //pause till user input
+	cin.clear();
+	cin.ignore(duration);
+}
 void Counter::getAllItemCount() { //Counts all item frequencies and stores them to itemsCount
 	inFS.clear();
 	inFS.seekg(0, inFS.beg);
@@ -61,7 +60,7 @@ void Counter::getAllItemCount() { //Counts all item frequencies and stores them 
 		inFS >> item;	
 		if (itemsCount.count(item) != 1) { //Checks if word has already been counted for
 			key.push_back(item);
-			itemFreq = 1;// Is 1 for the first item counted		
+			itemFreq = 0;		
 			while (!inFS.eof()) {
 				inFS >> currWord;
 				if (!inFS.fail()) {
@@ -70,12 +69,15 @@ void Counter::getAllItemCount() { //Counts all item frequencies and stores them 
 					}
 				}
 			}
-			itemsCount.emplace(item, itemFreq);
+			itemsCount.emplace(item, itemFreq+1); //+1 due to unknow error that causes it to not read the first instance of the item
 			inFS.clear(); //clears and resets inFS stream to begining of file
 			inFS.seekg(0, inFS.beg);
 		}
 		
 	}
+}
+void Counter::closeFile() {
+	inFS.close();//closes file
 }
 void Counter::printItemFreq() {
 	for (string keys : key) {//goes through each key for itemsCount map
@@ -105,77 +107,41 @@ void Counter::countSpecificItem() {
 	while (tolower(quit) != 'n') {
 		cout << "Please input an item" << endl;
 		cin >> item;
-		
-		inFS.seekg(0, inFS.beg);
-		itemFreq = 0;
-		while (!inFS.eof()) {
-			inFS >> currWord;
-			if (!inFS.fail()) {
-				if (currWord == item) {
-					++itemFreq;
-				}
-			}
-		}
 
-		cout << item << " appears " << itemFreq << " times." << endl;
 
-		cout << "Do you wish to try another item?(y) Or to continue to the other data? (n)." << endl;
+		cout << item << " appears " << this->countItem(item) << " times." << endl;
+
+		cout << "Do you wish to try another item?(y) Or to continue to the other data? (n). \Press q to quit the program." << endl;
 		cin >> quit;
+		if (tolower(quit) == 'q') {
+			exit(0);
+		}
 
 		cout << endl;
 	}
 }
 
-void Counter::mainMenu(){
-	while(true){
-		cout << "Loaded File: " << currFile <<"\n"
-				"Please select an option (input number)\n"
-				"1. Load file\n"
-				"2. Count all items\n"
-				"3. Count specific item\n"
-				"4. Save data\n" //count all items before saving data
-				"5. Quit program" << endl;
-		cin >> option;
-		
-		switch (option){
-		case '1':
-			cout << "Please input file name" << endl;
-			cin >> newFile;
-			closeFile();//closes previous file
-			inFS.open(newFile);//opens file
-				if (!inFS.is_open()) {//checks if file was open
-					cout << "Can't open new file" << endl;
-					inFS.open(currFile); //reopens previous file
-				}
-				else{
-					currFile = newFile;//saves new file as current file
-					key = {};//clears all previous keys
-					itemCount.clear();//clears previous item count
-				}
-			break;
-		case '2':
-			getAllItemCount();
-			printItemFreq();
-			break;
-		case '3':
-			countSpecificItem();
-			break;
-		case '4':
-			saveData();
-			break;
-		case '5':
-			exit(0);
-		default:
-			cout << "The option selected was invalid, please enter a valid option" << endl;
-		}
-	}
-}
-
 
 int main(){
-	Counter count = Counter("CS210 project 3 input file.txt");//Default file that is openned
+	string item;
 
-	count.mainMenu();
+	Counter count = Counter("CS210 project 3 input file.txt");
+
+	count.countSpecificItem();
+
+	count.pause(2);
+
+	count.getAllItemCount();
+	
+	count.closeFile();
+
+	count.printItemFreq();
+
+	count.pause(1);
+
+	count.printItemFreqHist();
+
+	count.saveData();
 
 	return 0;
 }
