@@ -1,0 +1,1 @@
+In this artifact, I demonstrate the ability to modulate and alter code in a way to increase interactability for the user of the program and the ability to modify program code in a way that allows the data structure to maintain its structural integrity.
